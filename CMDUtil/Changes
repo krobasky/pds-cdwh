@@ -1,0 +1,6 @@
+Revision history for Perl extension CMDUtil.
+
+0.01  Wed Nov 13 23:20:45 2019
+	- original version; created by h2xs 1.23 with options
+		-XAn CMDUtil
+

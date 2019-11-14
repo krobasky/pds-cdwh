@@ -1,0 +1,17 @@
+{
+  "filter-pids" : { 
+    "outPath" : "../out",
+    "codesPath" : "./ICDCodes",
+    "encoding" : "ICD10",
+    "drugType" : "DOAC",
+    "aeType" : "bleeding",
+    "dxFilename" : "", 
+    "baseDx" : "/data/CSV/GONZ_",
+    "fileDx" : "observation_fact_dx.csv",
+    "dryrun" : "0",
+    "verbose" : "1"
+  },
+  "xlate-ae-patvars" : {
+    "verbose" : "0"
+  }
+}

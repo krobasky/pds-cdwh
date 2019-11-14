@@ -1,0 +1,26 @@
+CMDUtil version 0.01
+====================
+
+Provides convenience functions for both loading configuration information from a json and also for printing messages to STDERR
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+JSON::MaybeXS
+
+COPYRIGHT AND LICENCE
+
+MIT License
+
+Copyright (C) 2019 by Kimberly Robasky RENCI/UNC Chapel Hill
+
+
