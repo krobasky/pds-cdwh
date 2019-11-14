@@ -16,7 +16,7 @@ our $config = "filter-pids";
 
 our %opt;
 our $dxFilename;
-# now read the config file and get hte defaults
+# now read the config file and get the defaults
 
 
 CMDUtil::getDefaults("./procCSV/config.json", $config);
@@ -94,7 +94,7 @@ my $notMatchName="${pidsPath}/NOT$opt{'aeType'}.pid-code";
 
 if( -e $matchName)    { CMDUtil::info(" ! $matchName will be overwritten"); } 
 else                  { CMDUtil::info("Writing to $matchName");}
-if( -e $notMatchName) { CMDUtil::info(" ! $matchName will be overwritten"); }
+if( -e $notMatchName) { CMDUtil::info(" ! $notMatchName will be overwritten"); }
 else                  { CMDUtil::info("Writing to $notMatchName"); }
 
 if(! $opt{'dryrun'} ) {
@@ -125,7 +125,7 @@ while( <$fh>) {
     if( ($lineNum % STEP_SIZE) == 0) {
 	$progress->update($lineNum);
     }
-    if(! $opt{'dryrun'}){
+    if( ! $opt{'dryrun'} ){
 	my ($enc, $pid, $code, @scrap) = split(",");
 	my $matchFound=0;
 	foreach my $i (@ICDCodes) {
@@ -141,7 +141,7 @@ while( <$fh>) {
 }
 
 $progress->update($count);
-CMDUtil::info("-----Done-----");
+CMDUtil::info("-----Done. Next: xlate-ae-patvars.pl -----");
 
 
 
