@@ -88,21 +88,52 @@ my $notMatchName="${pidsPath}/NOT$opt{'aeType'}.pid-code";
 ( -e $matchName) or die ("$matchName doesn't exist");
 ( -e $notMatchName) or die ("$matchName doesn't exist");
 
-my @aePids; my @NOTaePids;
-if($opt{'dryrun'}) {
-    CMDUtil::info("get pids");
-} else {
-    chomp( @aePids =`cut -f 1 ${matchName}|sort -u`); die "awk/sort failed: $?" if $?;
-    CMDUtil::info("got ".($#aePids+1)." pids (with adverse events): ${matchName}\n");
-    chomp( @NOTaePids =`cut -f 1 ${notMatchName}|sort -u`); die "awk/sort failed: $?" if $?;
-    CMDUtil::info("got ".($#NOTaePids+1)." pids (no adverse events) ${notMatchName}\n");
-}
+
+my $count;
+
+my @aePids; my @unfilteredNOTaePids;
+CMDUtil::info("get pids");
+
+chomp( @aePids =`cut -f 1 ${matchName}|sort -u`); die "awk/sort failed: $?" if $?;
+CMDUtil::info("got ".($#aePids+1)." pids (with adverse events): ${matchName}\n");
+
+CMDUtil::info("+ cut -f 1 ${notMatchName}|sort -u");
+$count = `wc -l < ${notMatchName}`; die "wc failed: $?" if $?; chomp($count);
+CMDUtil::info("line count = $count, this might take a minute, please wait...");
+my @NOTaePids;
+
+chomp( @unfilteredNOTaePids =`cut -f 1 ${notMatchName}|sort -u`); die "awk/sort failed: $?" if $?;
+CMDUtil::info("got ".($#unfilteredNOTaePids+1)." pids with non-adverse events ${notMatchName}\n");
+my %hNOTaePids = map { my $x = $_; $x => (! grep(/^${x}$/, @aePids) ? 1 : 0) }  @unfilteredNOTaePids; 
+@NOTaePids = grep { $hNOTaePids{$_} eq '1' } keys %hNOTaePids;
+
+
+#my @NOTaePids = ();
+#foreach my $n (@unfilteredNOTaePids) {
+#    my $found = 0; foreach my $a (@aePids) { if ($a eq $n) { $found=1;} }
+#    if ( ! $found ) { push @NOTaePids , $n; }
+#}
+CMDUtil::info("got ".($#NOTaePids+1)." pids that never had an adverse event ${notMatchName}\n");
+
+# my $cmdstr=
+# "for i in @NOTaePids; do 
+#   p=1 ; 
+#   for j in @aePids ; do  
+#     if [ $j -eq  $i ] ; then 
+#       p=0; 
+#     fi ; 
+#   done; 
+#   if [ $p -eq 1 ] ; then 
+#     echo $i ; 
+#   fi ;
+# done ";
+# @NOTaePids = split(" ",`$cmdstr`);
+
 
 # these constants could maybe be in the config:
 use constant MAX_LINES => 300000000; # ~ 70GB, for the STDIN case where you can't compute the lines in advance
 use constant STEP_SIZE => 1000; # number of lines to read before updating the progress bar
 my $fh;
-my $count;
 if($opt{'dimFilename'} eq "-") {
     $fh = *STDIN;
     $count = MAX_LINES;
@@ -112,6 +143,10 @@ if($opt{'dimFilename'} eq "-") {
     $count = `wc -l < $opt{'dimFilename'}`; die "wc failed: $?" if $?; chomp($count);
     CMDUtil::info("reading from $opt{'dimFilename'}");
 }
+
+
+
+
 
 my $currentYear = 2019;
 my $header=<$fh>;
@@ -160,6 +195,8 @@ while( <$fh>) {
     }
 
 }
+
+
 
 $progress->update($count);
 CMDUtil::info("-----Done. Next: analysis -----");
