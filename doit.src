@@ -1,53 +1,12 @@
-# xxx 
-# todo:
-# x 0. add a progress bar
-# x 1. move info, getDefaults into library
-# 2. finish generalizing the xlate program
-# 3. create a python program to characterize the data
-# 4. Adapt this wrapper/pipeline code to the github repo code
-# 5. check it all in
 
-cat ${dataRoot}/observation_fact_dx.csv |${srcRoot}/filter-pids.pl -e ${encoding}  -i - 
+cat ${dataroot}${drug}/observation_fact_dx.csv |./procCSV/filter-pids.pl -e ICD9  --nodryRun -i - 
+cat ${dataroot}${drug}/observation_fact_dx.csv |./procCSV/filter-pids.pl -e ICD10 --nodryRun -i - 
+mkdir -p ../out/${drug}/all
+cat ../out/${drug}/ICD9/bleeding.pid-code ../out/${drug}/ICD10/bleeding.pid-code|sort -u > ../out/${drug}/all/bleeding.pid-code
+./procCSV/xlate-ae-patvars.pl -e all -a bleeding -d ${drug} --nodryRun  > ../out/${drug}/all/bleeding.patvars 2
 
-awk '{print $1}' ${outRoot}/data.out/${drugType}/${encoding}/${aeType}.pid-code |sort -u -g > ${outRoot}/data.out/DOAC/${encoding}/bleeding.pid
-#   make sure ./src/filter-pids.pl still works (check data.out with data.out.expected)
-#pushd ~/data.out/DOAC/${encoding}
-#for i in * ; do diff ${i} ~/data.out.expected/DOAC/${encoding}/$i; done
-#popd
-
-# the NOTbleeding.pid-code file has patients with and without AEs, but only non-AE dx's
-# more work has to be done to tease out the 'control' patients
-
-awk '{print $1}' data.out/DOAC/${encoding}/NOTbleeding.pid-code |sort -u -g > data.out/DOAC/${encoding}/tmp.pid
-awk '{print $1}' data.out/DOAC/${encoding}/bleeding.pid-code |sort -u -g >> data.out/DOAC/${encoding}/tmp.pid
-sort -u -g data.out/DOAC/${encoding}/tmp.pid > data.out/DOAC/${encoding}/all.pid
-
-## cp  ~/data.out/DOAC/${encoding}/* ~/data.out.expected/DOAC/${encoding}/
-
-for i in `cat data.out/DOAC/${encoding}/all.pid`; do 
-  p=1 ; 
-  for j in `cat data.out/DOAC/${encoding}/bleeding.pid` ; do  
-    if [ $j -eq  $i ] ; then 
-      p=0; 
-    fi ; 
-  done; 
-  if [ $p -eq 1 ] ; then 
-    echo $i ; 
-  fi ;
-done > data.out/DOAC/${encoding}/NOTbleeding.pid
-
-# -----------------
-# encoding specfiic parts:
-#------------------
-
-# head -100 /data/CSV/GONZ_${drugType}/patient_dimension.csv| ./src/xlate-ae-patvars.pl  -e ${encoding} -a bleeding -d DOAC -i -
-cat /data/CSV/GONZ_DOAC/patient_dimension.csv | ./src/xlate-ae-patvars.pl -e ICD9 -a bleeding -d DOAC -i - > data.out/DOAC/ICD9/bleeding.patvars &
-cat /data/CSV/GONZ_DOAC/patient_dimension.csv | ./src/xlate-ae-patvars.pl -e ICD10 -a bleeding -d DOAC -i - > data.out/DOAC/ICD10/bleeding.patvars &
-
-# complete the 'all' dir (combines ICD9/ICD10)
-cp data.out/DOAC/ICD10/all.pid data.out/DOAC/all/all.pid
-cat data.out/DOAC/ICD9/bleeding.pid data.out/DOAC/ICD10/bleeding.pid|sort -u > data.out/DOAC/all/bleeding.pid
-cat /data/CSV/GONZ_DOAC/patient_dimension.csv | ./src/xlate-ae-patvars.pl -e all -a bleeding -d DOAC -i - > data.out/DOAC/all/bleeding.patvars &
-
-# test:
-# diff data.out/DOAC/ICD10/all.pid data.out/DOAC/ICD9/all.pid
+# TODO
+#  generalize the characterization code
+#  pull out the set-up code into the library
+#  write tests
+#  create the models
