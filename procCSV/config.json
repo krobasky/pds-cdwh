@@ -3,8 +3,6 @@
     "encoding" : "ICD10",
     "drugType" : "DOAC",
     "aeType" : "bleeding",
-
-
     "outPath" : "../out",
     "codesPath" : "./ICDCodes",
     "dxFilename" : "", 
@@ -14,10 +12,15 @@
     "verbose" : "1"
   },
   "xlate-ae-patvars" : {
-    "encoding" : "ICD10",
+    "encoding" : "all",
     "drugType" : "DOAC",
     "aeType" : "bleeding",
-    "input" : "patDimFilename",
-    "verbose" : "0"
+    "outPath" : "../out",
+    "currentYear" : 2019, 
+    "dimFilename" : "", 
+    "baseDim" : "/data/CSV/GONZ_",
+    "fileDim" : "patient_dimension.csv",
+    "dryrun" : "1",
+    "verbose" : "1"
   }
 }
