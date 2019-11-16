@@ -1,13 +1,16 @@
-#!/usr/bin/python
+# #!/usr/bin/python
 # use `conda activate doac` to run this
 # just some exploratory code right now
-import DataFrame from pd;
 import pandas as pd;
+#import DataFrame from pandas;
 import numpy as np;
 patvarFilename="../out/DOAC/all/bleeding.patvars"
-df = pd.read_csv("bleeding.patvars", sep="\t", 
+df = pd.read_csv(patvarFilename,
+                 sep="\t", 
                  names=["pid", "age", "yearsDead", "sex", "race", "ethnic", "married", "religion", "zip", "zippath", "AEFlag"]);
-df.describe()
+
+print(df.describe());
+
 df[df["AEFlag"]==1].describe()
 df[df["AEFlag"]==2].describe()
 controls=df[df["AEFlag"]==2].sample(n=4338, random_state=1)
@@ -73,3 +76,6 @@ controls["age"].describe()
 cases["age"].describe()
 cases.corr(method=histogram_intersection)
 cases.corr()
+
+
+
