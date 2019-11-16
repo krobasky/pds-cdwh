@@ -86,49 +86,39 @@ my $pidsPath="$opt{'outPath'}/$opt{'drugType'}/$opt{'encoding'}";
 my $matchName="${pidsPath}/$opt{'aeType'}.pid-code";
 my $notMatchName="${pidsPath}/NOT$opt{'aeType'}.pid-code";
 ( -e $matchName) or die ("$matchName doesn't exist");
-( -e $notMatchName) or die ("$matchName doesn't exist");
 
+# if you're translating an ICD code from filter-pids, you'll have a 'NOT<aeType>' file, 
+# if if you're translating a file that's a concat of all the ae's from ICD9, ICD10, you won't have a 'NOT<aetype> fil.
+my $existsNOTeaType = 0;
+if( -e $notMatchName){ $existsNOTeaType = 1; } else {
+    CMDUtil::info("No file for NOT<aeType>, just use ae pids as a filter without any checking.");
+}
 
 my $count;
 
-my @aePids; my @unfilteredNOTaePids;
+my @aePids; 
+
 CMDUtil::info("get pids");
 
 chomp( @aePids =`cut -f 1 ${matchName}|sort -u`); die "awk/sort failed: $?" if $?;
 CMDUtil::info("got ".($#aePids+1)." pids (with adverse events): ${matchName}\n");
 
-CMDUtil::info("+ cut -f 1 ${notMatchName}|sort -u");
-$count = `wc -l < ${notMatchName}`; die "wc failed: $?" if $?; chomp($count);
-CMDUtil::info("line count = $count, this might take a minute, please wait...");
 my @NOTaePids;
 
-chomp( @unfilteredNOTaePids =`cut -f 1 ${notMatchName}|sort -u`); die "awk/sort failed: $?" if $?;
-CMDUtil::info("got ".($#unfilteredNOTaePids+1)." pids with non-adverse events ${notMatchName}\n");
-my %hNOTaePids = map { my $x = $_; $x => (! grep(/^${x}$/, @aePids) ? 1 : 0) }  @unfilteredNOTaePids; 
-@NOTaePids = grep { $hNOTaePids{$_} eq '1' } keys %hNOTaePids;
+if($existsNOTeaType) {
 
+    CMDUtil::info("+ cut -f 1 ${notMatchName}|sort -u");
+    $count = `wc -l < ${notMatchName}`; die "wc failed: $?" if $?; chomp($count);
+    CMDUtil::info("line count = $count, this might take a minute, please wait...");
 
-#my @NOTaePids = ();
-#foreach my $n (@unfilteredNOTaePids) {
-#    my $found = 0; foreach my $a (@aePids) { if ($a eq $n) { $found=1;} }
-#    if ( ! $found ) { push @NOTaePids , $n; }
-#}
-CMDUtil::info("got ".($#NOTaePids+1)." pids that never had an adverse event ${notMatchName}\n");
+    my @unfilteredNOTaePids;
 
-# my $cmdstr=
-# "for i in @NOTaePids; do 
-#   p=1 ; 
-#   for j in @aePids ; do  
-#     if [ $j -eq  $i ] ; then 
-#       p=0; 
-#     fi ; 
-#   done; 
-#   if [ $p -eq 1 ] ; then 
-#     echo $i ; 
-#   fi ;
-# done ";
-# @NOTaePids = split(" ",`$cmdstr`);
-
+    chomp( @unfilteredNOTaePids =`cut -f 1 ${notMatchName}|sort -u`); die "awk/sort failed: $?" if $?;
+    CMDUtil::info("got ".($#unfilteredNOTaePids+1)." pids with non-adverse events ${notMatchName}\n");
+    my %hNOTaePids = map { my $x = $_; $x => (! grep(/^${x}$/, @aePids) ? 1 : 0) }  @unfilteredNOTaePids; 
+    @NOTaePids = grep { $hNOTaePids{$_} eq '1' } keys %hNOTaePids;
+    CMDUtil::info("got ".($#NOTaePids+1)." pids that never had an adverse event ${notMatchName}\n");
+}
 
 # these constants could maybe be in the config:
 use constant MAX_LINES => 300000000; # ~ 70GB, for the STDIN case where you can't compute the lines in advance
@@ -144,10 +134,6 @@ if($opt{'dimFilename'} eq "-") {
     CMDUtil::info("reading from $opt{'dimFilename'}");
 }
 
-
-
-
-
 my $currentYear = 2019;
 my $header=<$fh>;
 #print "pid\tage\tyearsDeceased\tsex\traceCode\tethnicityCode\tmaritalStatusCode\treligionCode\tzipCode\tstateCityZip_path\n";
@@ -155,6 +141,8 @@ my $header=<$fh>;
 use Term::ProgressBar;
 my $progress = Term::ProgressBar->new($count);
 my $lineNum=0;
+use constant CONTROL => 1;
+use constant ADVERSE_EVENT => 2;
 while( <$fh>) {
     $lineNum++;
     if( ($lineNum % STEP_SIZE) == 0) {
@@ -168,35 +156,39 @@ while( <$fh>) {
 	    $downloadDate, $importDate, $sourceSystmeCode, $uploadId, $deathDt) = $_ =~ m/("[^"]+"|[^,]+)(?:,\s*)?/g;
 	
 	my $AEFlag=0;
-	if($pid ~~ @aePids) { $AEFlag=1; }
-	if($pid ~~ @NOTaePids) { 
-	    if($AEFlag == 1) { die("Error: patient was found in adverse event AND controls list: \npid=$pid\n$matchName\n$notMatchName");}
-	    $AEFlag=2; 
-	}
-	if($AEFlag){
-	    $birthDate =~ s/"//g;
-	    $deathDate =~ s/"//g;
-	    $sex =~ s/"//g;
-	    
-	    my $yearsDeceased=0;
-	    if($deathDate ne "(null)") {
-		my($deathDay, @scrap)=split(" ", $deathDate);
-		my($year, $month, $day)=split("/", $deathDay);
-		$yearsDeceased = $opt{"currentYear"} - $year;
+	if($pid ~~ @aePids) { $AEFlag=ADVERSE_EVENT; }
+	if($existsNOTeaType) {
+	    if($pid ~~ @NOTaePids) { 
+		if($AEFlag == ADVERSE_EVENT) { die("Error: patient was found in adverse event AND controls list: \npid=$pid\n$matchName\n$notMatchName");}
+		$AEFlag=CONTROL; 
 	    }
-	    my($birthDay, @scrap)=split(" ", $birthDate);
-	    my ($year, $month, $day)=split("/", $birthDay);
-	    my $age = $opt{"currentYear"} - $year - $yearsDeceased;
-	    
+	} else {
+	    if(!$AEFlag) {$AEFlag = CONTROL;}
+	}
+
+	$birthDate =~ s/"//g;
+	$deathDate =~ s/"//g;
+	$sex =~ s/"//g;
+	
+	my $yearsDeceased=0;
+	if($deathDate ne "(null)") {
+	    my($deathDay, @scrap)=split(" ", $deathDate);
+	    my($year, $month, $day)=split("/", $deathDay);
+	    $yearsDeceased = $opt{"currentYear"} - $year;
+	}
+	my($birthDay, @scrap)=split(" ", $birthDate);
+	my ($year, $month, $day)=split("/", $birthDay);
+	my $age = $opt{"currentYear"} - $year - $yearsDeceased;
+	
+	if($AEFlag){
 	    print "$pid\t$age\t$yearsDeceased\t$sex\t$raceCode\t$ethnicityCode\t$maritalStatusCode\t$religionCode\t$zipCode\t$stateCityZip_path\t$AEFlag\n";
 	} else {
-	    CMDUtil::info("[$pid:SKIP] ! Not in adverse or controls");
+	    CMDUtil::info(" ! $pid not in adverse or controls");
+	    print "$pid\t$age\t$yearsDeceased\t$sex\t$raceCode\t$ethnicityCode\t$maritalStatusCode\t$religionCode\t$zipCode\t$stateCityZip_path\t".ADVERSE_EVENT."\n";
 	}
     }
 
 }
-
-
 
 $progress->update($count);
 CMDUtil::info("-----Done. Next: analysis -----");
