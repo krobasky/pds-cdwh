@@ -33,6 +33,7 @@ GetOptions (
     "e|encoding=s"   => \$opt{'encoding'},
     "a|aeType=s"     => \$opt{'aeType'},
     "d|drugType=s"   => \$opt{'drugType'},
+    "o|outpath=s"    => \$opt{'outPath'},
     "i|inputFile=s"  => \$opt{'dxFilename'},
     "b|baseDx=s"     => \$opt{'baseDx'},
     "f|fileDx=s"     => \$opt{'fileDx'},
@@ -54,7 +55,10 @@ pod2usage(-exitval => 0, -verbose => 2) if $opt{'man'};
 if(defined $opt{'settingsFilename'} && $opt{'settingsFilename'} ne "") {
     CMDUtil::info("Reading new defaults from:$opt{'settingsFilename'}");
     getDefaults($opt{'settingsFilename'});
+} else {
+    $opt{'settingsFilename'} = $settingsFilename;
 }
+
 
 # if the input file isn't explicitly specified, construct it from other options
 if( ! defined $opt{'dxFilename'} || $opt{'dxFilename'} eq "") {
@@ -159,12 +163,13 @@ filter-pids.pl - filters i2b2-sourced 'Observation Fact' diagnosis CSV file into
 
 =head1 DESCRIPTION
 
-B<filter-pids> filters i2b2-sourced 'Observation Fact' diagnosis CSV file into patient numbers with/without the adverse event identified by given ICD codes.
+B<filter-pids> filters i2b2-sourced 'Observation Fact' diagnosis CSV file into patient numbers and codes that are for adverse and non-adverse events, as identified by given ICD codes. 
 
  The input i2b2-sourced CSV will be determined by options -b,-d,-f; e.g.:
    Default <base-dx><drug-type><file-dx> = ${dxFilename}
  Data will be output to <ae-type>.pid-code and NOT<ae-type>.pid-code
    under <outPath>/<drugType>/<encoding>
+Notably, the 'NOT<ae-type>.pid-code' file will contain the pids for all patients that suffer an adverse event, but that were also diagnosed with a code that signifies a non-adverse event. That is, it's very likely that the 'NOT...' file will contain records for all pids, including those in the adverse event file.
  ex.: 
   ./procCSV/filter-pids.pl -e ICD10 -a bleeding -d DOAC
  reads codes from $opt{'codesPath'}/bleeding.ICD10.codes
