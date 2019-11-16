@@ -10,7 +10,7 @@ df = pd.read_csv(patvarFilename,
                  names=["pid", "age", "yearsDead", "sex", "race", "ethnic", "married", "religion", "zip", "zippath", "AEFlag"]);
 
 print(df.head());
-#print(df[df["AEFlag"]==1,"AEFlag"].describe());
+print(df[df["AEFlag"]==1,"AEFlag"].describe());
 print(df[df["AEFlag"]==2].describe());
 controls=df[df["AEFlag"]==2].sample(n=4338, random_state=1)
 cases=df[df["AEFlag"]==1]
