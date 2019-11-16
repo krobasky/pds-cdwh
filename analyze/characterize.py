@@ -9,10 +9,14 @@ df = pd.read_csv(patvarFilename,
                  sep="\t", 
                  names=["pid", "age", "yearsDead", "sex", "race", "ethnic", "married", "religion", "zip", "zippath", "AEFlag"]);
 
-print(df.describe());
+print(df.head());
+#print(df[df["AEFlag"]==1,"AEFlag"].describe());
+print(df[df["AEFlag"]==2].describe());
+controls=df[df["AEFlag"]==2].sample(n=4338, random_state=1)
+cases=df[df["AEFlag"]==1]
 
-df[df["AEFlag"]==1].describe()
-df[df["AEFlag"]==2].describe()
+df[df["AEFlag"]==1].describe();
+df[df["AEFlag"]==2].describe();
 controls=df[df["AEFlag"]==2].sample(n=4338, random_state=1)
 cases=df[df["AEFlag"]==1]
 cases.describe()
@@ -27,14 +31,10 @@ cases[cases["sex"]=="M"].describe()
 controls[controls["sex"]=="F"].describe()
 controls[controls["sex"]=="M"].describe()
 controls["religion"].describe()
-controls["religion"].types
+#controls["religion"].types
 controls.groupby(["religion"]).size()
-controls.groupby(["religion"]).size().sort_values(by = ["religion"])
-controls.groupby(["religion"]).size().sort_values(by=["religion"])
 x=controls.groupby(["religion"]).size()
-x.sort_values(by=["religion"])
 x.head()
-x.sort_values(by=["religion"])
 x.sort_values()
 y=cases.groupby(["religion"]).size()
 controls["religion"].describe()
@@ -47,7 +47,6 @@ cases.groupby(["sex"]).size()
 cases.groupby(["race"]).size()
 controls.groupby(["race"]).size()
 cases.groupby(["race"]).size()
-controls.groupby(["relgion"]).size()
 controls.groupby(["religion"]).size()
 y.sort_values().tail()
 x.sort_values().tail()
@@ -56,12 +55,10 @@ caseAge=cases.groupby(["age"]).size()
 contrAge.sort_values().tail()
 caseAge.sort_values().tail()
 contrDeath=controls.groupby(["age"]).size()
-caseDeath=cases.groupby(["ageDeceased"]).size()
 cases.head()
 caseDeath=cases.groupby(["yearsDead"]).size()
 contDeath=controls.groupby(["yearsDead"]).size()
 caseDeath.sort_values().tail()
-controlsDeath.sort_values().tail()
 contDeath.sort_values().tail()
 contDeath.describe()
 caseDeath.describe()
@@ -70,11 +67,9 @@ controls["yearsDead"].describe()
 sum(controls["yearsDead"])
 sum(cases["yearsDead"])
 cases[cases["yearsDead"]>0].describe()
-controls[contols["yearsDead"]>0].describe()
 controls[controls["yearsDead"]>0].describe()
 controls["age"].describe()
 cases["age"].describe()
-cases.corr(method=histogram_intersection)
 cases.corr()
 
 
