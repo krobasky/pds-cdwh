@@ -93,29 +93,8 @@ print();
 compare_dist(df=df, cases=cases, controls=controls, census=.508, colname="sex", tagname="FEMALE");
 print();
 compare_dist(df=df, cases=cases, controls=controls, census=.72, colname="caucasion", tagname="CAUCASION");
+print();
+compare_dist(df=df, cases=cases, controls=controls, census=.34, colname="religion", tagname="RELIGION");
 
-# xxx
-
-relstr="NOT"
-totalNonRelCases=cases[cases["religion"]==relstr].describe().loc['count','age'];
-totalNonRelControls=controls[controls["religion"]==relstr].describe().loc['count','age'];
-print("Religion - "+relstr+"["+str(totalNonRelCases)+","+str(totalNonRelControls)+"] : cases, controls");
-#print("Religion - "+relstr+": cases, controls");
-print("" + str(int(100*totalNonRelCases/cases.describe().loc['count','age']))+"%", end="");
-print(", " + str(int(100*totalNonRelControls/controls.describe().loc['count','age']))+"%");
-
-relstr="UNKNOWN"
-totalNonRelCases=cases[cases["religion"]==relstr].describe().loc['count','age'];
-totalNonRelControls=controls[controls["religion"]==relstr].describe().loc['count','age'];
-print("Religion - "+relstr+"["+str(totalNonRelCases)+","+str(totalNonRelControls)+"] : cases, controls");
-print("" + str(int(100*totalNonRelCases/cases.describe().loc['count','age']))+"%", end="");
-print(", " + str(int(100*totalNonRelControls/controls.describe().loc['count','age']))+"%");
-
-cases.groupby(["religion"]).size()
-x=cases.groupby(["religion"]).size()
-#print(x.sort_values())
-#print(x.sort_values().tail())
-
-controls.groupby(["religion"]).size()
-x=controls.groupby(["religion"]).size()
-
+print(cases.groupby(["religion"]).size().sort_values().tail(10));
+print(df.groupby(["religion"]).size().sort_values().tail(10));
