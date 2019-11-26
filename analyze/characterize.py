@@ -66,15 +66,21 @@ print("***Proportion unknown***");
 proportion_unknown('sex',          (df['sex']=='NB')); # not M or F
 proportion_unknown('caucasion',         (df['caucasion']=='7')|(df['caucasion']=='8')); # unknown or refused
 proportion_unknown('ethnic',       (df['ethnic']=='3')|(df['ethnic']=='4')); # unknown or refused
+#  ethnic includes 'NAIS', this is not in the codings
 proportion_unknown('married',      (df['married']=='6')|(df['married']=='unknown'));
 proportion_unknown('religion',     (df['religion']=='NOT')|(df['religion']=='REF')|(df['religion']=='UNKNOWN'));
 
 #                 names=["pid", "age", "yearsDeceased", "sex", "caucasion", "ethnic", "married", "religion", "zip", "zippath", "AEFlag"]);
-# this shows a rough distribution of years people were born, which appears to be normal around 1946.5 (min,max=1903,2015)
+
+# AGE:
+# the following shows a rough distribution of years people were born, which appears to be normal around 1946.5 (min,max=1903,2015)
 # cut -d, -f 3 /data/CSV/GONZ_DOAC/patient_dimension.csv|awk -F'/' '{print $1}'|sort -g|uniq -c
 # but our ages (computed to account also for death) might have some errors based on incorrectly reported deaths
 # ages: (seems to be normal around 72.5, min,max=4,116, one with 0 years old)
 # cut -d, -f 3 /data/CSV/GONZ_DOAC/patient_dimension.csv|sed 's/"//'|awk -F'/' '{print 2019-$1}'|sort -g|uniq -c
+# also:
+#  one of the patients is marked as having died a month before born in 1966; latest observations are in 2016, may be error in deceased year
+#  rules could be added to the mapper to find and correct these (and flag for record keepers)
 
 exit();
 
