@@ -65,8 +65,7 @@ print("***Proportion unknown***");
 # xxx find out what is 'unknown' correlated with and control for *that*
 proportion_unknown('sex',          (df['sex']=='NB')); # not M or F
 proportion_unknown('caucasion',         (df['caucasion']=='7')|(df['caucasion']=='8')); # unknown or refused
-proportion_unknown('ethnic',       (df['ethnic']=='3')|(df['ethnic']=='4')); # unknown or refused
-#  ethnic includes 'NAIS', this is not in the codings
+proportion_unknown('ethnic',       (df['ethnic']=='3')|(df['ethnic']=='4')|(df['ethnic']=='NAIS')); # unknown or refused or 'not available in system'
 proportion_unknown('married',      (df['married']=='6')|(df['married']=='unknown'));
 proportion_unknown('religion',     (df['religion']=='NOT')|(df['religion']=='REF')|(df['religion']=='UNKNOWN'));
 
